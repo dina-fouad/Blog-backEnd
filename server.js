@@ -8,6 +8,7 @@ const app = express();
 //Routes
 const authPath = require('./Routes/Auth')
 const usersPath = require('./Routes/users')
+const postPath = require('./Routes/Posts')
 
 
 
@@ -23,6 +24,7 @@ app.use(express.json());
 //Routes/middleware
 app.use('/api/auth', authPath)
 app.use('/api/users', usersPath)
+app.use('/api/posts', postPath)
 
 
 

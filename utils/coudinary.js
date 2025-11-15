@@ -6,7 +6,7 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_SECRET,
 });
 
-//upload image to couldinary
+//upload profileImg to couldinary
 async function uploudImgCloudinary(image) {
   try {
     const data = await cloudinary.uploader.upload(image,{
@@ -18,6 +18,17 @@ async function uploudImgCloudinary(image) {
   }
 }
 
+//upload postImg to couldinary
+async function uploudPostImgCloudinary(image) {
+  try {
+    const data = await cloudinary.uploader.upload(image,{
+      folder: "post_images",
+    });
+    return data;
+  } catch (err) {
+    return err;
+  }
+}
 
 //remove previos img
 async function removeImgCloudinary(imageId) {
@@ -28,4 +39,4 @@ async function removeImgCloudinary(imageId) {
     return err;
   }
 }
-module.exports = {uploudImgCloudinary , removeImgCloudinary};
+module.exports = {uploudImgCloudinary , removeImgCloudinary,uploudPostImgCloudinary};

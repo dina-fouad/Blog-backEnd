@@ -13,12 +13,15 @@ const {
 const path = require("path");
 const fs = require("fs");
 
+
+
 const router = express.Router();
 
 // get all users profile
 router.get("/", verifyToken, isAdmin, async (req, res) => {
   try {
-    const allUsers = await User.find().select("-password");
+    const allUsers = await User.find().select("-password").populate('posts');
+  
 
     res.send(allUsers);
   } catch (error) {
@@ -29,7 +32,7 @@ router.get("/", verifyToken, isAdmin, async (req, res) => {
 //get a specific user
 router.get("/:id", validateId, async (req, res) => {
   const id = req.params.id;
-  const user = await User.findById(id).select("-password");
+  const user = await User.findById(id).select("-password").populate('posts');
   if (!user) {
     return res.status(404).json({ msg: "this user not found" });
   }
@@ -110,7 +113,7 @@ router.post(
     if (!req.file) {
       return res.status(400).json({ msg: "No file provided" });
     }
-    
+
     const user = await User.findById(req.user.id);
 
     const pathImage = path.join(__dirname, `../images/${req.file.filename}`);
@@ -149,6 +152,7 @@ router.delete("/:id", validateId, verifyToken, isAdmin, async (req, res) => {
     return res.status(404).json({ msg: "User is not found" });
   }
   try {
+    await removeImgCloudinary(user.profileImage.publicId);
     await User.findByIdAndDelete(req.params.id);
     return { msg: "User deleted successfully" };
   } catch (err) {
