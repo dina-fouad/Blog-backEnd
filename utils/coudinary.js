@@ -39,4 +39,15 @@ async function removeImgCloudinary(imageId) {
     return err;
   }
 }
-module.exports = {uploudImgCloudinary , removeImgCloudinary,uploudPostImgCloudinary};
+
+
+//remove multiple images
+async function removeMultiImgCloudinary(publicIds) {
+  try {
+    const data = await cloudinary.v2.api.delete_resources(publicIds);
+    return data;
+  } catch (err) {
+    return err;
+  }
+}
+module.exports = {uploudImgCloudinary , removeImgCloudinary,uploudPostImgCloudinary,removeMultiImgCloudinary};

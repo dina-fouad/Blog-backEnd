@@ -1,5 +1,7 @@
 const User = require("../models/user");
 const Joi = require("joi");
+const Post = require("../models/post");
+const Comment = require("../models/comment");
 const express = require("express");
 const { verifyToken, isAdmin } = require("../middlewares/verifyToken");
 const validateId = require("../middlewares/validateObjectId");
@@ -9,19 +11,17 @@ const uploadImgs = require("../middlewares/photoUpload");
 const {
   removeImgCloudinary,
   uploudImgCloudinary,
+  removeMultiImgCloudinary,
 } = require("../utils/coudinary");
 const path = require("path");
 const fs = require("fs");
-
-
 
 const router = express.Router();
 
 // get all users profile
 router.get("/", verifyToken, isAdmin, async (req, res) => {
   try {
-    const allUsers = await User.find().select("-password").populate('posts');
-  
+    const allUsers = await User.find().select("-password").populate("posts");
 
     res.send(allUsers);
   } catch (error) {
@@ -32,7 +32,7 @@ router.get("/", verifyToken, isAdmin, async (req, res) => {
 //get a specific user
 router.get("/:id", validateId, async (req, res) => {
   const id = req.params.id;
-  const user = await User.findById(id).select("-password").populate('posts');
+  const user = await User.findById(id).select("-password").populate("posts");
   if (!user) {
     return res.status(404).json({ msg: "this user not found" });
   }
@@ -152,7 +152,17 @@ router.delete("/:id", validateId, verifyToken, isAdmin, async (req, res) => {
     return res.status(404).json({ msg: "User is not found" });
   }
   try {
-    await removeImgCloudinary(user.profileImage.publicId);
+    const posts = await Post.find({ user: user._id });
+    const publicIds = posts?.map((post) => {
+      post.postImg.publicId;
+    }); // to give an array of publicIds
+
+    if (publicIds?.length > 0) {
+      await removeMultiImgCloudinary(publicIds);
+    }
+
+    await Post.deleteMany({ user: user._id });
+    await Comment.deleteMany({ user: user._id });
     await User.findByIdAndDelete(req.params.id);
     return { msg: "User deleted successfully" };
   } catch (err) {

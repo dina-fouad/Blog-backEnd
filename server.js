@@ -9,6 +9,7 @@ const app = express();
 const authPath = require('./Routes/Auth')
 const usersPath = require('./Routes/users')
 const postPath = require('./Routes/Posts')
+const commentPath = require('./Routes/comments')
 
 
 
@@ -25,7 +26,7 @@ app.use(express.json());
 app.use('/api/auth', authPath)
 app.use('/api/users', usersPath)
 app.use('/api/posts', postPath)
-
+app.use('/api/comments', commentPath)
 
 
 

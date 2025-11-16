@@ -11,6 +11,7 @@ const path = require("path");
 const fs = require("fs");
 const Joi = require("joi");
 const validateId = require("../middlewares/validateObjectId");
+const Comment = require("../models/comment");
 const router = express.Router();
 
 //create post
@@ -72,18 +73,70 @@ router.get("/", async (req, res) => {
       post = await Post.find()
         .populate("user", ["-password"])
         .populate("likes", "-password")
+        .populate({
+          path: "comments",
+          populate: [
+            {
+              path: "user",
+              select: [
+                "-password",
+                "-bio",
+                "-isAdmin",
+                "-isAccountVerified",
+                "-createdAt",
+                "-updatedAt",
+                "-__v",
+              ],
+            },
+          ],
+        })
         .sort({ createdAt: -1 })
         .skip(skipValue)
         .limit(pageSize);
     } else if (category) {
       post = await Post.find({ category })
         .populate("user", ["-password"])
-        .populate("likes", "-password");
+        .populate("likes", "-password")
+        .populate({
+          path: "comments",
+          populate: [
+            {
+              path: "user",
+              select: [
+                "-password",
+                "-bio",
+                "-isAdmin",
+                "-isAccountVerified",
+                "-createdAt",
+                "-updatedAt",
+                "-__v",
+              ],
+              // اظهار بيانات صاحب التعليق
+            },
+          ],
+        });
     } else {
       post = await Post.find()
         .sort({ createdAt: -1 })
         .populate("user", ["-password"])
-        .populate("likes", "-password");
+        .populate("likes", "-password")
+        .populate({
+          path: "comments",
+          populate: [
+            {
+              path: "user",
+              select: [
+                "-password",
+                "-bio",
+                "-isAdmin",
+                "-isAccountVerified",
+                "-createdAt",
+                "-updatedAt",
+                "-__v",
+              ], // اظهار بيانات صاحب التعليق
+            },
+          ],
+        });
     }
 
     res.json({ post });
@@ -96,7 +149,24 @@ router.get("/", async (req, res) => {
 router.get("/:id", validateId, async (req, res) => {
   const post = await Post.findById(req.params.id)
     .populate("user", "-password")
-    .populate("likes", "-password");
+    .populate("likes", "-password")
+    .populate({
+      path: "comments",
+      populate: [
+        {
+          path: "user",
+          select: [
+            "-password",
+            "-bio",
+            "-isAdmin",
+            "-isAccountVerified",
+            "-createdAt",
+            "-updatedAt",
+            "-__v",
+          ], // اظهار بيانات صاحب التعليق
+        },
+      ],
+    });
   if (!post) {
     return res.status(404).json({ msg: "Post not found" });
   }
@@ -130,7 +200,8 @@ router.delete("/:id", validateId, verifyToken, async (req, res) => {
   try {
     await Post.findByIdAndDelete(req.params.id);
     await removeImgCloudinary(post.postImg.publicId);
-    //@TODO to remove comments of this post
+    // delete all comments that belong to this post
+    await Comment.deleteMany({ post: post._id });
     res.json({ msg: "Post has been deleted successfully" });
   } catch (err) {
     res.send(err);

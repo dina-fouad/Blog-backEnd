@@ -52,15 +52,22 @@ let UserSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
+
+    
     toJSON : {virtuals : true},
     toObject  :{virtuals : true}
   }
 );
+
+
 // populate posts that belongs to user
 UserSchema.virtual("posts", {
   ref: "Post",
   foreignField: "user",
   localField: "_id",
 });
+
+
+
 const User = mongoose.model("User", UserSchema);
 module.exports = User;

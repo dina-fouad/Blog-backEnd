@@ -1,5 +1,3 @@
-
-
 const mongoose = require("mongoose");
 
 //User schema
@@ -7,7 +5,7 @@ let postSchema = new mongoose.Schema(
   {
     title: {
       type: String,
-     
+
       trim: true,
     },
 
@@ -30,6 +28,7 @@ let postSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+
     likes: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -39,8 +38,16 @@ let postSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
+
+    toJSON : {virtuals : true},
+    toObject : {virtuals : true}
   }
 );
 
+postSchema.virtual("comments", {
+  ref: "Comment",
+  foreignField: "post",
+  localField: "_id",
+});
 const Post = mongoose.model("Post", postSchema);
 module.exports = Post;
