@@ -20,7 +20,7 @@ const uploadImgs = multer({
     if (file.mimetype.startsWith("image")) {
       cb(null, true);
     } else {
-      cb({ msg: "unsupported file format" }, false);
+      cb({ message: "unsupported file format" }, false);
     }
   },
 });

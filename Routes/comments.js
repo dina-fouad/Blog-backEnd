@@ -35,15 +35,25 @@ router.post("/", verifyToken, async (req, res) => {
 // get all comments
 router.get("/", verifyToken, isAdmin, async (req, res) => {
   try {
-    const comments = await Comment.find().populate("user", [
-      "-password",
-      "-bio",
-      "-isAdmin",
-      "-isAccountVerified",
-      "-createdAt",
-      "-updatedAt",
-      "-__v",
-    ]);
+    const comments = await Comment.find()
+      .populate("user", [
+        "-password",
+        "-bio",
+        "-isAdmin",
+        "-isAccountVerified",
+        "-createdAt",
+        "-updatedAt",
+        "-__v",
+      ])
+      .populate("likesComment", [
+        "-password",
+        "-bio",
+        "-isAdmin",
+        "-isAccountVerified",
+        "-createdAt",
+        "-updatedAt",
+        "-__v",
+      ]);
     res.send(comments);
   } catch (error) {
     res.send(error);
@@ -83,7 +93,7 @@ router.put("/:id", validateId, verifyToken, async (req, res) => {
     if (comment.user._id.toString() === req.user.id) {
       comment.text = req.body.text;
       await comment.save();
-      return res.status(200).json({ msg: "Comment has been Updated" , comment});
+      return res.status(200).json({ msg: "Comment has been Updated", comment });
     } else {
       return res
         .status(403)
@@ -91,6 +101,43 @@ router.put("/:id", validateId, verifyToken, async (req, res) => {
     }
   } catch (error) {
     return res.send(error);
+  }
+});
+
+//Toggle likesComment
+router.put("/likesComment/:id", validateId, verifyToken, async (req, res) => {
+  let comment = await Comment.findById(req.params.id);
+  if (!comment) {
+    return res.status(404).json({ msg: "Comment is not found" });
+  }
+
+  const isUserAlreadyLiked = comment.likesComment.includes(req.user.id);
+  try {
+    if (isUserAlreadyLiked) {
+      comment = await Comment.findByIdAndUpdate(
+        req.params.id,
+        {
+          $pull: {
+            likesComment: req.user.id,
+          },
+        },
+        { new: true }
+      );
+    } else {
+      comment = await Comment.findByIdAndUpdate(
+        req.params.id,
+        {
+          $push: {
+            likesComment: req.user.id,
+          },
+        },
+        { new: true }
+      );
+    }
+
+    res.send(comment);
+  } catch (err) {
+    res.send(err);
   }
 });
 

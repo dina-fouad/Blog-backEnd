@@ -64,6 +64,7 @@ router.post(
 
 //get all posts
 router.get("/", async (req, res) => {
+  
   const { pageSize, pageNumber, category } = req.query;
 
   const skipValue = (pageNumber - 1) * pageSize;
